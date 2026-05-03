@@ -1,0 +1,118 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace StatisticsAssignment
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // The data set provided in the assignment[span_2](start_span)[span_2](end_span)
+            double[] data = { 115, 182, 191, 31, 196, 1099, 5, 172, 10, 179, 83, 21, 20, 21, 186, 177, 195, 193, 188, 199, 62, 109, 105, 183, 110 };
+            
+            Console.WriteLine("--- Part 1: Statistical Computations ---");
+            PerformStatisticalAnalysis(data);
+
+            Console.WriteLine("\n--- Part 2: Outlier Detection ---");
+            DetectOutliers(data);
+            
+            Console.WriteLine("\nPress any key to exit...");
+            Console.ReadKey();
+        }
+
+        static void PerformStatisticalAnalysis(double[] data)
+        {
+            int n = data.Length;
+            double[] sortedData = (double[])data.Clone();
+            Array.Sort(sortedData);
+
+            // (i) Mean[span_3](start_span)[span_3](end_span)
+            double mean = data.Average();
+
+            // (ii) Mode[span_4](start_span)[span_4](end_span)
+            double mode = data.GroupBy(x => x).OrderByDescending(g => g.Count()).First().Key;
+
+            // (iii) Median[span_5](start_span)[span_5](end_span)
+            double median = GetPercentile(sortedData, 50);
+
+            // (iv) Variance[span_6](start_span)[span_6](end_span)
+            double variance = data.Select(x => Math.Pow(x - mean, 2)).Sum() / n;
+
+            // (v) P20[span_7](start_span)[span_7](end_span)
+            double p20 = GetPercentile(sortedData, 20);
+
+            // (vi) P50[span_8](start_span)[span_8](end_span)
+            double p50 = GetPercentile(sortedData, 50);
+
+            // (vii & ix) Third Quartile (Q3)[span_9](start_span)[span_9](end_span)
+            double q3 = GetPercentile(sortedData, 75);
+
+            // (viii) Second Quartile (Q2)[span_10](start_span)[span_10](end_span)
+            double q2 = GetPercentile(sortedData, 50);
+
+            // (x) Range[span_11](start_span)[span_11](end_span)
+            double range = data.Max() - data.Min();
+
+            // (xi) Interquartile Range (IQR)[span_12](start_span)[span_12](end_span)
+            double q1 = GetPercentile(sortedData, 25);
+            double iqr = q3 - q1;
+
+            // (xii) Standard Deviation[span_13](start_span)[span_13](end_span)
+            double stdDev = Math.Sqrt(variance);
+
+            // (xiii) Summation of Deviations[span_14](start_span)[span_14](end_span)
+            double sumDeviations = data.Sum(x => x - mean);
+
+            // Displaying results[span_15](start_span)[span_15](end_span)
+            Console.WriteLine($"(i) Mean: {mean:F2}");
+            Console.WriteLine($"(ii) Mode: {mode}");
+            Console.WriteLine($"(iii) Median: {median}");
+            Console.WriteLine($"(iv) Variance: {variance:F2}");
+            Console.WriteLine($"(v) P20: {p20}");
+            Console.WriteLine($"(vi) P50: {p50}");
+            Console.WriteLine($"(vii/ix) Third Quartile (Q3): {q3}");
+            Console.WriteLine($"(viii) Second Quartile (Q2): {q2}");
+            Console.WriteLine($"(x) Range: {range}");
+            Console.WriteLine($"(xi) IQR: {iqr}");
+            Console.WriteLine($"(xii) Standard Deviation: {stdDev:F2}");
+            Console.WriteLine($"(xiii) Summation of Deviations: {sumDeviations:F10}");
+        }
+
+        static void DetectOutliers(double[] data)
+        {
+            double[] sortedData = (double[])data.Clone();
+            Array.Sort(sortedData);
+
+            double q1 = GetPercentile(sortedData, 25);
+            double q3 = GetPercentile(sortedData, 75);
+            double iqr = q3 - q1;
+
+            // Outlier bounds based on IQR rule[span_16](start_span)[span_16](end_span)
+            double lowerBound = q1 - (1.5 * iqr);
+            double upperBound = q3 + (1.5 * iqr);
+
+            Console.WriteLine($"Lower Bound: {lowerBound:F2}, Upper Bound: {upperBound:F2}");
+            
+            foreach (var val in data)
+            {
+                bool isOutlier = (val < lowerBound || val > upperBound);
+                Console.WriteLine($"Value: {val, 5} -> Outlier: {(isOutlier ? "YES" : "NO")}");
+            }
+        }
+
+        // Helper method for Percentiles calculation[span_17](start_span)[span_17](end_span)
+        static double GetPercentile(double[] sortedData, double percentile)
+        {
+            double rank = (percentile / 100) * (sortedData.Length - 1);
+            int index = (int)rank;
+            double fraction = rank - index;
+            
+            if (index + 1 < sortedData.Length)
+                return sortedData[index] + (fraction * (sortedData[index + 1] - sortedData[index]));
+            
+            return sortedData[index];
+        }
+    }
+}
+
